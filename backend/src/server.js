@@ -11,7 +11,7 @@ const __dirname = path.resolve();
 
 app.use(express.json()) //this is local host hence origin is localhosturl but incase of deployment it should be frontend url
 app.use(cors({origin:ENV.CLINT_URL,credentials:true}));
-app.use("/api/inngest",serve({clint:inngest,functions}))
+app.use("/api/inngest", serve({ client: inngest, functions }))
 
 
 app.get("/books",(req,res)=>{
