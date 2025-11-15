@@ -4,19 +4,28 @@ import { ENV } from './lib/env.js';
 import path from 'path';
 import { connectDB } from './lib/db.js';
 import { serve } from 'inngest/express';
+import {clerkMiddleware} from '@clerk/express';
 import { inngest ,functions} from './lib/inngest.js';
+import { protectRoute } from './middleware/protectRoute.js';
+import chatRoutes from './routes/chatRoutes.js';
 const app = express();
 const __dirname = path.resolve();
 
 
 app.use(express.json()) //this is local host hence origin is localhosturl but incase of deployment it should be frontend url
 app.use(cors({origin:ENV.CLINT_URL,credentials:true}));
-app.use("/api/inngest", serve({ client: inngest, functions }))
+app.use(clerkMiddleware());
 
+
+app.use("/api/inngest", serve({ client: inngest, functions }))
+app.use("/api/chat",chatRoutes);
 
 app.get("/books",(req,res)=>{
     res.status(200).json({msg:"success from book api"})
 })
+
+
+
 
 if(ENV.NODE_ENV==="production"){
     app.use(express.static(path.join(__dirname,'../frontend/dist')))
