@@ -13,7 +13,7 @@ if(!apiKey || !apiSecret){
 export const chatClint = StreamChat.getInstance(apiKey,apiSecret);
 
 
-export const streamClint = new StreamClient(apiKey,apiSecret)
+export const streamClient = new StreamClient(apiKey,apiSecret)
 
 
 

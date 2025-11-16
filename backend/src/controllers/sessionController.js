@@ -1,6 +1,6 @@
 
 import Session from "../models/Session.js";
-import { chatClint, streamClint } from "../lib/stream.js";
+import { chatClint, streamClient } from "../lib/stream.js";
 
 export async function createSession(req,res){
     try{
@@ -20,6 +20,9 @@ export async function createSession(req,res){
             callId,
         })
 
+        if(!session){
+            return res.status(500).json({msg:"Failed to create session"});
+        }
         await streamClint.video.call("default",callId).getOrCreate({
             data:{
                 created_by_id:clerkId,
@@ -27,11 +30,14 @@ export async function createSession(req,res){
             },
         });
 
+        
+
         const channel = chatClint.channel("messaging",callId,{
             name:`${problem} Session`,
             created_by_id:clerkId,
             members:[clerkId],
         })
+
 
         await channel.create();
         res.status(201).json({session});
@@ -79,6 +85,7 @@ export async function getSessionById(req,res){
         if(!session){
             return res.status(404).json({msg:"Session not found"});
         };
+        
         res.status(200).json({session});
     }catch(error){
         console.log("Error fetching session by id:",error);
@@ -95,7 +102,13 @@ export async function joinSession(req,res){
         if(!session){
             return res.status(404).json({msg:"Session not found"});
         }
-        if(session.participant) return res.status(400).json({msg:"Session already has a participant"});
+        if(session.status!=="active"){
+            return res.status(400).json({msg:"Session is already completed"});
+        }
+        if(session.host.toString()===userId.toString()){
+            return res.status(400).json({msg:"Host cannot join their own session as participant"});
+        }
+        if(session.participant) return res.status(409).json({msg:"Session already has a participant"});
         session.participant = userId;
         await session.save();
 
@@ -129,12 +142,14 @@ export async function endSession(req,res){
         session.status="completed";
         await session.save();
 
-        const call = await streamClint.video.call("default",session.callId);
+        const call = streamClient.video.call("default",session.callId);
         await call.delete({hard:true});
 
         const channel = chatClint.channel("messaging",session.callId);
         await channel.delete();
 
+        session.status="completed";
+        await session.save();
         res.status(200).json({session,msg:"Session ended successfully"});
     }catch(error){
        console.log("Error ending session:",error);
