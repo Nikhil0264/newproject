@@ -11,7 +11,7 @@ if (!PUBLISHABLE_KEY) {
   throw new Error('Missing Publishable Key')
 }
 
-const queryClint = new queryClint();
+const queryClint = new QueryClient();
 
 
 createRoot(document.getElementById('root')).render(
