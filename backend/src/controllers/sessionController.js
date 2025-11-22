@@ -1,6 +1,5 @@
 import Session from "../models/Session.js";
 import { chatClient, streamClient } from "../lib/stream.js";
-import { StreamVideoServerClient } from "@stream-io/node-sdk";
 
 export async function createSession(req, res) {
   try {
